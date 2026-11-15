@@ -1,0 +1,77 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>大肥鱼 · 后台监控</title>
+<style>
+*{box-sizing:border-box}
+body{background:#070d1a;color:#dbe8ff;font-family:ui-monospace,Menlo,Consolas,"Microsoft YaHei",monospace;margin:0;padding:14px;font-size:13px}
+h1{font-size:15px;margin:0 0 10px;font-weight:600;letter-spacing:.5px}
+.cards{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.card{background:#0f1a30;border:1px solid #1e3155;border-radius:10px;padding:8px 12px;min-width:104px}
+.card b{display:block;color:#7ea6e8;font-size:11px;font-weight:400;margin-bottom:3px}
+.card span{font-size:15px;color:#e8f2ff}
+.ok{color:#5fd48a}.bad{color:#ff7b7b}
+#log{background:#0a1324;border:1px solid #1b2a47;border-radius:10px;padding:10px;height:calc(100vh - 210px);overflow:auto}
+.row{padding:3px 0;border-bottom:1px dashed #14213a;white-space:pre-wrap;word-break:break-word}
+.t{color:#5f7ba6;margin-right:6px}
+.qq{color:#7fd0ff}.phone{color:#b8ffb0}.proactive{color:#ffd479}.bili{color:#ff9ee0}
+.her{color:#e8f2ff}.them{color:#9fb2d6}
+.who{color:#6f8bb8;margin-right:4px}
+.bar{display:flex;gap:8px;margin-bottom:8px;align-items:center}
+button{background:#16294a;color:#cfe2ff;border:1px solid #26406b;border-radius:8px;padding:5px 10px;cursor:pointer}
+input{background:#0d182c;border:1px solid #22375c;color:#cfe2ff;border-radius:8px;padding:5px 9px;width:260px}
+</style></head><body>
+<h1>大肥鱼 · 后台监控 <span id="ts" class="t"></span></h1>
+<div class="bar">
+  <input id="key" placeholder="粘贴 monitor key（只需一次）">
+  <button onclick="saveKey()">保存</button>
+  <button onclick="load()">立即刷新</button>
+  <span id="st" class="t"></span>
+</div>
+<div class="cards">
+  <div class="card"><b>QQ 连接</b><span id="c-qq">-</span></div>
+  <div class="card"><b>在线</b><span id="c-on">-</span></div>
+  <div class="card"><b>消息总数</b><span id="c-msg">-</span></div>
+  <div class="card"><b>日记</b><span id="c-diary">-</span></div>
+  <div class="card"><b>事实</b><span id="c-facts">-</span></div>
+  <div class="card"><b>摘要天数</b><span id="c-sums">-</span></div>
+  <div class="card"><b>待发送</b><span id="c-pend">-</span></div>
+  <div class="card"><b>她现在</b><span id="c-doing">-</span></div>
+</div>
+<div id="log"></div>
+<script>
+const $ = (id) => document.getElementById(id)
+function saveKey(){ localStorage.setItem('monitor_key', $('key').value.trim()); load() }
+function channelName(c){ return {qq:'QQ', phone:'手机', proactive:'她主动', bili:'B站'}[c] || c }
+async function load(){
+  const k = localStorage.getItem('monitor_key') || ''
+  $('key').value = k
+  if(!k){ $('st').textContent = '先填 monitor key'; return }
+  try{
+    const r = await fetch('/api/monitor?k=' + encodeURIComponent(k) + '&t=' + Date.now())
+    const d = await r.json()
+    if(!d.ok){ $('st').textContent = '鉴权失败：' + (d.error||''); return }
+    $('st').textContent = '已连接 · 每 2 秒刷新'
+    $('ts').textContent = new Date(d.at).toLocaleTimeString()
+    const h = d.health || {}
+    $('c-qq').innerHTML = h.wsConnected ? '<span class="ok">已连</span>' : '<span class="bad">断开</span>'
+    $('c-on').innerHTML = (h.online && h.online.online) ? '<span class="ok">在线</span>' : '<span class="bad">离线</span>'
+    $('c-msg').textContent = d.counts.msgs
+    $('c-diary').textContent = d.counts.diary
+    $('c-facts').textContent = d.counts.facts
+    $('c-sums').textContent = d.counts.sums
+    $('c-pend').textContent = d.pending
+    $('c-doing').textContent = (d.life && d.life.doing) ? d.life.doing.slice(0,10) : '-'
+    const log = $('log')
+    const atBottom = log.scrollTop + log.clientHeight >= log.scrollHeight - 40
+    log.innerHTML = d.messages.map(m => {
+      const who = m.role === 'her' ? '她' : (m.call_me || m.qq || '对方')
+      return '<div class="row"><span class="t">' + m.t + '</span>' +
+        '<span class="who">' + channelName(m.channel) + ' · ' + who + '：</span>' +
+        '<span class="' + m.channel + ' ' + (m.role === 'her' ? 'her' : 'them') + '">' +
+        String(m.content).replace(/</g,'&lt;') + '</span></div>'
+    }).join('')
+    if(atBottom) log.scrollTop = log.scrollHeight
+  }catch(e){ $('st').textContent = '连不上：' + e.message }
+}
+load(); setInterval(load, 2000)
+</script></body></html>
