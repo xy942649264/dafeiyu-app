@@ -20,9 +20,12 @@ workflows:
       - name: 同步前端到 iOS 工程
         script: |
           npx cap copy ios
+      - name: 检查 @capacitor/ios 是否就位
+        script: |
+          ls -d node_modules/@capacitor/ios && cat ios/App/Podfile | head -6
       - name: pod install
         script: |
-          cd ios/App && pod install --repo-update
+          cd ios/App && pod install
       - name: 编译未签名 ipa
         script: |
           set -e
