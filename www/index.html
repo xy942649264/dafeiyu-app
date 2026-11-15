@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0a1122">
+<title>大肥鱼</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="大肥鱼">
+<link rel="apple-touch-icon" href="/art/icon-180.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+<!-- 登录 -->
+<section id="login" class="login">
+  <div class="card">
+    <img src="/art/dafeiyu.png" class="logo" alt="大肥鱼">
+    <h1>大肥鱼</h1>
+    <p class="sub">登录后才是你的她</p>
+    <div class="tabs">
+      <button id="tabLogin" class="tab on">登录</button>
+      <button id="tabReg" class="tab">注册</button>
+    </div>
+
+    <div id="paneLogin">
+      <label>你的 QQ 号<input id="loginUser" inputmode="numeric" placeholder="例如 495674923"></label>
+      <label>密码<input id="loginPass" type="password" placeholder="你的密码" autocomplete="current-password"></label>
+      <button id="loginBtn" class="primary wide">进入</button>
+    </div>
+
+    <div id="paneReg" class="hidden">
+      <label>你的 QQ 号<input id="regQq" inputmode="numeric" placeholder="只能用一次，不能重复"></label>
+      <label>你的名字<input id="regName" placeholder="例如 阿周"></label>
+      <label>她想怎么称呼你（身份）<input id="regCall" placeholder="例如 爸爸 / 哥哥 / 主人"></label>
+      <label>设置密码<input id="regPass" type="password" placeholder="至少 6 位"></label>
+      <button id="regBtn" class="primary wide">注册并进入</button>
+      <p class="hintline">注册后，这段身份只属于你；她记得的事大家共用，但称呼与人格分区互不串。</p>
+    </div>
+    <p id="loginErr" class="err"></p>
+  </div>
+</section>
+
+<!-- 主界面 -->
+<section id="app" class="app hidden">
+  <header class="top">
+    <img src="/art/dafeiyu.png" class="avatar" alt="">
+    <div class="who">
+      <b id="herName">大肥鱼</b>
+      <span id="status" class="dot">在线</span>
+      <span id="meLine" class="me">你：爸爸</span>
+    </div>
+    <button id="logout" class="ghost">退出</button>
+  </header>
+
+  <div class="hero">
+    <div class="halo"></div>
+    <video id="char" class="char" autoplay loop muted playsinline webkit-playsinline poster="/art/dafeiyu.png">
+      <source src="/art/videos/idle.webm" type="video/webm">
+    </video>
+    <img id="charFallback" class="char fallback hidden" src="/art/dafeiyu.png" alt="大肥鱼">
+    <div id="bubble" class="bubble hidden"></div>
+  </div>
+
+  <div id="log" class="log">
+    <div class="msg her">我在呢。今天想跟我说点什么？</div>
+  </div>
+
+  <footer class="bottom">
+    <button id="camBtn" class="icon" title="摄像头">📷</button>
+    <button id="callBtn" class="icon" title="通话模式（一直听着）">📞</button>
+    <button id="bellBtn" class="icon" title="开启手机通知">🔔</button>
+    <input id="input" placeholder="跟她说点什么…" autocomplete="off">
+    <button id="micBtn" class="icon" title="按住说话">🎤</button>
+    <button id="sendBtn" class="primary">发送</button>
+  </footer>
+  <video id="cam" playsinline muted class="cam hidden"></video>
+</section>
+
+<script type="module" src="/app.js"></script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}))
+}
+</script>
+</body>
+</html>
